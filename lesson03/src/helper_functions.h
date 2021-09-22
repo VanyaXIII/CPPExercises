@@ -9,3 +9,9 @@ cv::Mat invertImageColors(cv::Mat image);
 cv::Mat addBackgroundInsteadOfBlackPixels(cv::Mat object, cv::Mat background);
 
 cv::Mat addBackgroundInsteadOfBlackPixelsLargeBackground(cv::Mat object, cv::Mat largeBackground);
+
+cv::Mat drawImgOn(cv::Mat object, cv::Mat bg, int x, int y);
+
+cv::Mat drawNTimes(int n, cv::Mat object, cv::Mat bg);
+
+cv::Mat setRandColor(cv::Mat img);

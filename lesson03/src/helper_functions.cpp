@@ -4,51 +4,96 @@
 
 
 cv::Mat makeAllBlackPixelsBlue(cv::Mat image) {
-    // TODO реализуйте функцию которая каждый черный пиксель картинки сделает синим
-
-    // ниже приведен пример как узнать цвет отдельного пикселя - состоящий из тройки чисел BGR (Blue Green Red)
-    // чем больше значение одного из трех чисел - тем насыщеннее его оттенок
-    // всего их диапазон значений - от 0 до 255 включительно
-    // т.е. один байт, поэтому мы используем ниже тип unsigned char - целое однобайтовое неотрицательное число
-    cv::Vec3b color = image.at<cv::Vec3b>(13, 5); // взяли и узнали что за цвет в пикселе в 14-ом ряду (т.к. индексация с нуля) и 6-ой колонке
-    unsigned char blue = color[0]; // если это число равно 255 - в пикселе много синего, если равно 0 - в пикселе нет синего
-    unsigned char green = color[1];
-    unsigned char red = color[2];
-
-    // как получить белый цвет? как получить черный цвет? как получить желтый цвет?
-    // поэкспериментируйте! например можете всю картинку заполнить каким-то одним цветом
-
-    // пример как заменить цвет по тем же координатам
-    red = 255;
-    // запустите эту версию функции и посмотрите на получившуюся картинку - lesson03/resultsData/01_blue_unicorn.jpg
-    // какой пиксель изменился? почему он не чисто красный?
-    image.at<cv::Vec3b>(13, 5) = cv::Vec3b(blue, green, red);
+    int c = image.cols, r = image.rows;
+    for (int i = 0; i < r; ++i)
+    {
+        for (int j = 0; j < c; ++j)
+        {
+            cv::Vec3b color = image.at<cv::Vec3b>(i, j);
+            if (color[1] + color[0] + color[2] == 0)
+            {
+                image.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 0, 0);
+            }
+        }
+    }
 
     return image;
 }
 
 cv::Mat invertImageColors(cv::Mat image) {
-    // TODO реализуйте функцию которая каждый цвет картинки инвертирует:
-    // т.е. пусть ночь станет днем, а сумрак рассеется
-    // иначе говоря замените каждое значение яркости x на (255-x) (т.к находится в диапазоне от 0 до 255)
-
+    int c = image.cols, r = image.rows;
+    for (int i = 0; i < r; ++i)
+    {
+        for (int j = 0; j < c; ++j)
+        {
+            cv::Vec3b color = image.at<cv::Vec3b>(i, j);
+            image.at<cv::Vec3b>(i, j) = cv::Vec3b(255 - color[0], 255 - color[1], 255 - color[2]);
+        }
+    }
     return image;
 }
 
 cv::Mat addBackgroundInsteadOfBlackPixels(cv::Mat object, cv::Mat background) {
-    // TODO реализуйте функцию которая все черные пиксели картинки-объекта заменяет на пиксели с картинки-фона
-    // т.е. что-то вроде накладного фона получится
 
-    // гарантируется что размеры картинок совпадают - проверьте это через rassert, вот например сверка ширины:
+    int c = object.cols, r = object.rows;
+    for (int i = 0; i < r; ++i)
+    {
+        for (int j = 0; j < c; ++j)
+        {
+            cv::Vec3b color = object.at<cv::Vec3b>(i, j);
+            if (color[0] + color[1] + color[2] == 0)
+                object.at<cv::Vec3b>(i, j) = background.at<cv::Vec3b>(i, j);
+        }
+    }
     rassert(object.cols == background.cols, 341241251251351);
-
     return object;
 }
 
-cv::Mat addBackgroundInsteadOfBlackPixelsLargeBackground(cv::Mat object, cv::Mat largeBackground) {
-    // теперь вам гарантируется что largeBackground гораздо больше - добавьте проверок этого инварианта (rassert-ов)
 
-    // TODO реализуйте функцию так, чтобы нарисовался объект ровно по центру на данном фоне, при этом черные пиксели объекта не должны быть нарисованы
+cv::Mat addBackgroundInsteadOfBlackPixelsLargeBackground(cv::Mat object, cv::Mat largeBackground)
+{
+    return drawImgOn(object, largeBackground, largeBackground.cols / 2 - object.cols / 2, largeBackground.rows / 2 - object.rows / 2);
+}
 
-    return largeBackground;
+cv::Mat drawImgOn(cv::Mat object, cv::Mat bg, int x, int y)
+{
+    int c = object.cols, r = object.rows;
+    for (int i = 0; i < r; ++i)
+    {
+        for (int j = 0; j < c; ++j)
+        {
+            cv::Vec3b color = object.at<cv::Vec3b>(i, j);
+            if (color[0] + color[1] + color[2] != 0)
+                bg.at<cv::Vec3b>(i + y, j + x) = object.at<cv::Vec3b>(i, j);
+        }
+    }
+    return bg;
+}
+
+cv::Mat drawNTimes(int n, cv::Mat object, cv::Mat bg) {
+    for (int i = 0; i < n; ++i)
+    {
+        int x = rand() % (bg.cols - object.cols), y = rand() % (bg.rows - object.rows);
+        bg = drawImgOn(object, bg, x, y);
+    }
+    return bg;
+}
+
+cv::Mat setRandColor(cv::Mat img)
+{
+    int c = img.cols, r = img.rows;
+    for (int i = 0; i < r; ++i)
+    {
+        for (int j = 0; j < c; ++j)
+        {
+            cv::Vec3b color = img.at<cv::Vec3b>(i, j);
+            if (color[0] + color[1] + color[2] == 0) {
+                int a = rand() % 255;
+                int g = rand() % 255;
+                int b = rand() % 255;
+                img.at<cv::Vec3b>(i, j) = cv::Vec3b(b, g, a);
+            }
+        }
+    }
+    return img;
 }
