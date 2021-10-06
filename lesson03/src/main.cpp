@@ -19,28 +19,44 @@ void task1() {
         std::filesystem::create_directory(resultsDir);
     }
 
-    cv::Mat blueUnicorn = makeAllBlackPixelsBlue(imgUnicorn.clone());
-    std::string filename = resultsDir + "01_blue_unicorn.jpg";
-    cv::imwrite(filename, blueUnicorn);
+//    cv::Mat blueUnicorn = makeAllBlackPixelsBlue(imgUnicorn.clone());
+//    std::string filename = resultsDir + "01_blue_unicorn.jpg";
+//    cv::imwrite(filename, blueUnicorn);
+//
+//    cv::Mat invertedUnicorn = invertImageColors(imgUnicorn.clone());
+//    filename = resultsDir + "02_inverted_unicorn.jpg";
+//    cv::imwrite(filename, invertedUnicorn);
+//
+//    cv::Mat castle = cv::imread("lesson03/data/castle.png");
+//    cv::Mat unicornInCastle = addBackgroundInsteadOfBlackPixels(imgUnicorn.clone(), castle.clone());
+//    filename = resultsDir + "03_unicorn_castle.png";
+//    cv::imwrite(filename, unicornInCastle);
+//
+//    cv::Mat largeCastle = cv::imread("lesson03/data/castle_large.jpg");
+//    cv::Mat unicornInLargeCastle = addBackgroundInsteadOfBlackPixelsLargeBackground(imgUnicorn.clone(), largeCastle.clone());
+//    filename = resultsDir + "04_large_castle.jpg";
+//    cv::imwrite(filename, unicornInLargeCastle);
+//
+//
+//    cv::Mat nTimesImg = drawNTimes(100, imgUnicorn.clone(), largeCastle.clone());
+//    filename = resultsDir + "05_random.jpg";
+//    cv::imwrite(filename, nTimesImg);
+//
+//    cv::Mat resized;
+//    cv::resize(largeCastle, resized, cv::Size(100, 100));
+//    filename = resultsDir + "06_resized.jpg";
+//    cv::imwrite(filename, resized);
 
-    cv::Mat invertedUnicorn = invertImageColors(imgUnicorn.clone());
-    filename = resultsDir + "02_inverted_unicorn.jpg";
-    cv::imwrite(filename, invertedUnicorn);
+    cv::Mat d = cv::imread("lesson03/data/dilate.png");
+    cv::Mat dd = dilate(d.clone(), 1);
+    std::string filename = resultsDir + "07_dilate.png";
+    cv::imwrite(filename, dd);
 
-    cv::Mat castle = cv::imread("lesson03/data/castle.png");
-    cv::Mat unicornInCastle = addBackgroundInsteadOfBlackPixels(imgUnicorn.clone(), castle.clone());
-    filename = resultsDir + "03_unicorn_castle.png";
-    cv::imwrite(filename, unicornInCastle);
+    cv::Mat r = cv::imread("lesson03/data/erode.png");
+    cv::Mat rr = erode(r.clone(), 1);
+    filename = resultsDir + "08_erode.png";
+    cv::imwrite(filename, rr);
 
-    cv::Mat largeCastle = cv::imread("lesson03/data/castle_large.jpg");
-    cv::Mat unicornInLargeCastle = addBackgroundInsteadOfBlackPixelsLargeBackground(imgUnicorn.clone(), largeCastle.clone());
-    filename = resultsDir + "04_large_castle.jpg";
-    cv::imwrite(filename, unicornInLargeCastle);
-
-
-    cv::Mat nTimesImg = drawNTimes(100, imgUnicorn.clone(), largeCastle.clone());
-    filename = resultsDir + "05_random.jpg";
-    cv::imwrite(filename, nTimesImg);
 
 }
 
@@ -56,14 +72,12 @@ void task2() {
 
 struct MyVideoContent {
     cv::Mat frame;
-    int lastClickX;
-    int lastClickY;
 };
 
-void onMouseClick(int event, int x, int y, int flags, void *pointerToMyVideoContent) {
-    MyVideoContent &content = *((MyVideoContent*) pointerToMyVideoContent);
+void onMouseClick(int event, int x, int y, int flags, void *vec) {
+    std::vector<std::pair<int, int>> &ar = *((std::vector<std::pair<int, int>>*) vec);
     if (event == cv::EVENT_LBUTTONDOWN) {
-        std::cout << "Left click at x=" << x << ", y=" << y << std::endl;
+        ar.emplace_back(x, y);
     }
 }
 
@@ -74,37 +88,63 @@ void task3() {
 
     MyVideoContent content;
 
+    std::vector<std::pair<int, int>> coords;
+
     while (video.isOpened()) {
         bool isSuccess = video.read(content.frame);
         rassert(isSuccess, 348792347819);
         rassert(!content.frame.empty(), 3452314124643);
 
-        cv::imshow("video", content.frame);
-        cv::setMouseCallback("video", onMouseClick, &content);
+        cv::imshow("video", setRedColor(content.frame.clone(), coords));
+        cv::setMouseCallback("video", onMouseClick, &coords);
 
         int key = cv::waitKey(10);
-        // TODO добавьте завершение программы в случае если нажат пробел
-        // TODO добавьте завершение программы в случае если нажат Escape (придумайте как нагуглить)
+        if (key == 32 || key == 27)
+            return;
 
-        // TODO сохраняйте в вектор (std::vector<int>) координаты всех кликов мышки
-        // TODO и перед отрисовкой очередного кадра - заполняйте все уже прокликанные пиксели красным цветом
     }
 }
 
 void task4() {
-    // TODO на базе кода из task3 (скопируйте просто его сюда) сделайте следующее:
-    // при клике мышки - определяется цвет пикселя в который пользователь кликнул, теперь этот цвет считается прозрачным (как было с черным цветом у единорога)
-    // и теперь перед отрисовкой очередного кадра надо подложить вместо прозрачных пикселей - пиксель из отмасштабированной картинки замка (castle_large.jpg)
+    cv::VideoCapture video(0);
 
-    // TODO попробуйте сделать так чтобы цвет не обязательно совпадал абсолютно для прозрачности (чтобы все пиксели похожие на тот что был кликнут - стали прозрачными, а не только идеально совпадающие)
+    rassert(video.isOpened(), 3423948392481);
+
+    MyVideoContent content;
+
+    std::vector<std::pair<int, int>> coords;
+
+    cv::Mat largeCastle = cv::imread("lesson03/data/castle_large.jpg");
+    cv::Mat resizedCastle;
+
+    int i = 0;
+
+    while (video.isOpened()) {
+        bool isSuccess = video.read(content.frame);
+        rassert(isSuccess, 348792347819);
+        rassert(!content.frame.empty(), 3452314124643);
+        ++i;
+        if (i == 1)
+        {
+            cv::resize(largeCastle, resizedCastle, cv::Size(content.frame.cols, content.frame.rows));
+        }
+
+        cv::imshow("video", setBg(content.frame, resizedCastle, getColors(content.frame, coords)));
+        cv::setMouseCallback("video", onMouseClick, &coords);
+
+        int key = cv::waitKey(10);
+        if (key == 32 || key == 27)
+            return;
+
+    }
 }
 
 int main() {
     try {
 //        task1();
-        task2();
+//        task2();
 //        task3();
-//        task4();
+        task4();
         return 0;
     } catch (const std::exception &e) {
         std::cout << "Exception! " << e.what() << std::endl;
