@@ -6,9 +6,9 @@
 #include "morphology.h"
 
 #include <opencv2/highgui.hpp>
+#include <opencv2/world.hpp>
 
-// TODO 100 реализуйте систему непересекающихся множеств - см. файлы disjoint_set.h и disjoint_set.cpp
-// чтобы их потестировать - постарайтесь дописать сюда много разных интересных случаев:
+
 void testingMyDisjointSets() {
     DisjointSet set(5);
     rassert(set.count_differents() == 5, 2378923791);
@@ -30,17 +30,123 @@ void testingMyDisjointSets() {
 // 1.4) картинка визуализирующая эту маску после применения волшебства морфологии
 // 1.5) картинка визуализирующая эту маску после применения волшебства СНМ (системы непересекающихся множеств)
 // 2) сохраняйте эти картинки визуализации только для тех кадров, когда пользователем был нажат пробел (код 32)
-// 3) попробуйте добавить с помощью нажатия каких то двух кнопок "усиление/ослабление подавления фона"
-// 4) попробуйте поменять местами морфологию и СНМ
-// 5) попробуйте добавить настройку параметров морфологии и СНМ по нажатию кнопок (и выводите их значения в консоль)
-void backgroundMagickStreaming() {
 
+
+cv::Mat bg;
+cv::Mat largeCastle = cv::imread("lesson03/data/castle_large.jpg");
+cv::Mat resizedCastle;
+
+int i = 0;
+cv::Mat bg1;
+cv::Mat morph;
+cv::Mat set;
+
+bool fBg = false;
+bool t = false;
+bool m = false;
+bool d = false;
+
+struct MyVideoContent {
+    cv::Mat frame;
+};
+
+void onMouseClick(int event, int x, int y, int flags, void *frame) {
+    MyVideoContent &content = *((MyVideoContent*) frame);
+    if (event == cv::EVENT_LBUTTONDOWN) {
+        bg = content.frame.clone();
+    }
 }
+
+void backgroundMagickStreaming() {
+    cv::VideoCapture video(0);
+
+    rassert(video.isOpened(), 3423948392481);
+
+    MyVideoContent content;
+
+    std::string resultsDir = "lesson04/resultsData/";
+    if (!std::filesystem::exists(resultsDir)) {
+        std::filesystem::create_directory(resultsDir);
+    }
+
+
+    while (video.isOpened()) {
+        bool isSuccess = video.read(content.frame);
+        rassert(isSuccess, 348792347819);
+        rassert(!content.frame.empty(), 3452314124643);
+
+        if (i == 0)
+        {
+            cv::resize(largeCastle, resizedCastle, cv::Size(content.frame.cols, content.frame.rows));
+            bg = resizedCastle;
+            bg1 = resizedCastle;
+            morph = resizedCastle;
+            set = resizedCastle;
+            ++i;
+        }
+
+        cv::blur(content.frame, content.frame, cv::Size(2, 2));
+        cv::setMouseCallback("video", onMouseClick, &content);
+        if (fBg) {
+            cv::Mat res;
+            bg1 = checkBg(content.frame, bg);
+            res = bg1.clone();
+            if (m) {
+                morph = erode(dilate(bg1, 1), 1);
+                res = morph.clone();
+            }
+            if (d)
+            {
+                set = processWithDS(res.clone(), 200);
+                res = set.clone();
+            }
+            if (t)
+            {
+                res = translate(res.clone(), resizedCastle, content.frame.clone());
+            }
+            cv::imshow("video", res);
+        }
+        else
+        {
+            cv::imshow("video", content.frame);
+        }
+
+        int key = cv::waitKey(10);
+        if (key == 32)
+        {
+            cv::imwrite(resultsDir + "bg.png", bg);
+            cv::imwrite(resultsDir + "bg1.png", bg1);
+            cv::imwrite(resultsDir + "morph.png", morph);
+            cv::imwrite(resultsDir + "set.png", set);
+            cv::imwrite(resultsDir + "frame.png", content.frame);
+            return;
+        }
+
+        if (key == 83)
+        {
+            fBg = !fBg;
+        }
+        if (key == 84)
+        {
+            t = !t;
+        }
+        if (key == 77)
+        {
+            m = !m;
+        }
+        if (key == 68)
+        {
+            d = !d;
+        }
+
+    }
+}
+
 
 int main() {
     try {
-        testingMyDisjointSets();
-//        backgroundMagickStreaming();
+//        testingMyDisjointSets();
+        backgroundMagickStreaming();
         return 0;
     } catch (const std::exception &e) {
         std::cout << "Exception! " << e.what() << std::endl;

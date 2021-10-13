@@ -1,4 +1,6 @@
 #include "helper_functions.h"
+#include "../../lesson04/src/morphology.h"
+
 #include <cmath>
 #include <algorithm>
 
@@ -102,12 +104,12 @@ cv::Mat setBg(cv::Mat object, cv::Mat bg, std::vector<cv::Vec3b> vec) {
         for (int j = 0; j < x; ++j) {
             cv::Vec3b color = object.at<cv::Vec3b>(i, j);
             for (auto &elem: vec) {
-                if (distance(object.at<cv::Vec3b>(i, j), elem) <= 10.0)
+                if (distance(object.at<cv::Vec3b>(i, j), elem) <= 30.0)
                     mat1.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
             }
         }
     }
-    auto mat2 = dilate(mat1, 2);
+    auto mat2 = dilate(mat1, 1);
     for (int i = 0; i < y; ++i) {
         for (int j = 0; j < x; ++j) {
             cv::Vec3b color = mat2.at<cv::Vec3b>(i, j);
@@ -181,5 +183,6 @@ cv::Mat erode(cv::Mat object, int r) {
     }
     return res;
 }
+
 
 
