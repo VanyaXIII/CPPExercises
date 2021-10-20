@@ -9,7 +9,7 @@ cv::Mat checkBg(cv::Mat object, cv::Mat bg) {
     for (int i = 0; i < y; ++i) {
         for (int j = 0; j < x; ++j) {
             cv::Vec3b color = object.at<cv::Vec3b>(i, j);
-            if (distance(object.at<cv::Vec3b>(i, j), bg.at<cv::Vec3b>(i, j)) <= 40.0)
+            if (distance(object.at<cv::Vec3b>(i, j), bg.at<cv::Vec3b>(i, j)) <= 20.0)
                 mat1.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
         }
     }
