@@ -8,6 +8,11 @@ void testSomeBlur() {
     // TODO выберите любую картинку и любую силу сглаживания - проверьте что результат - чуть размытая картинка
     // Входные картинки для тестирования возьмите из предыдущего урока (т.е. по пути lesson05/data/*).
     // Результирующие картинки сохарняйте в эту папку (т.е. по пути lesson06/resultsData/*).
+
+    std::string name = "test";
+    cv::Mat img = cv::imread("lesson06/data/" + name + ".jpg");
+
+    cv::imwrite("lesson06/resultsData/" + name + "_res.jpg", blur(img.clone(), 30));
 }
 
 void testManySigmas() {
