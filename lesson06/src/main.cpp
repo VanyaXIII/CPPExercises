@@ -13,6 +13,16 @@ void testSomeBlur() {
     cv::Mat img = cv::imread("lesson06/data/" + name + ".jpg");
 
     cv::imwrite("lesson06/resultsData/" + name + "_res.jpg", blur(img.clone(), 30));
+
+    name = "sergey";
+    img = cv::imread("lesson06/data/" + name + ".jpg");
+
+    cv::imwrite("lesson06/resultsData/" + name + "_res.jpg", blur(img.clone(), 100));
+
+    name = "color";
+    img = cv::imread("lesson06/data/" + name + ".jpg");
+
+    cv::imwrite("lesson06/resultsData/" + name + "_res.jpg", blur(img.clone(), 50));
 }
 
 void testManySigmas() {
