@@ -13,24 +13,24 @@
 
 int randFont() {
     int fonts[] = {
-//            cv::FONT_HERSHEY_SIMPLEX,
-//            cv::FONT_HERSHEY_PLAIN,
-//            cv::FONT_HERSHEY_DUPLEX,
-//            cv::FONT_HERSHEY_COMPLEX,
-//            cv::FONT_HERSHEY_TRIPLEX,
+            cv::FONT_HERSHEY_SIMPLEX,
+            cv::FONT_HERSHEY_PLAIN,
+            cv::FONT_HERSHEY_DUPLEX,
+            cv::FONT_HERSHEY_COMPLEX,
+            cv::FONT_HERSHEY_TRIPLEX,
             cv::FONT_HERSHEY_COMPLEX_SMALL,
-//            cv::FONT_HERSHEY_SCRIPT_SIMPLEX,
-//            cv::FONT_HERSHEY_SCRIPT_COMPLEX,
+            cv::FONT_HERSHEY_SCRIPT_SIMPLEX,
+            cv::FONT_HERSHEY_SCRIPT_COMPLEX,
     };
     // Выбираем случайный шрифт из тех что есть в OpenCV
     int nfonts = (sizeof(fonts) / sizeof(int));
     int font = rand() % nfonts;
 
-    // С вероятностью 20% делаем шрифт наклонным (italic)
-//    bool is_italic = ((rand() % 5) == 0);
-//    if  (is_italic) {
-//        font = font | cv::FONT_ITALIC;
-//    }
+//     С вероятностью 20% делаем шрифт наклонным (italic)
+    bool is_italic = ((rand() % 5) == 0);
+    if  (is_italic) {
+        font = font | cv::FONT_ITALIC;
+    }
 
     return font;
 }
@@ -115,15 +115,24 @@ void experiment1() {
     for (char letter = 'a'; letter <= 'z'; ++letter) {
         std::string letterDir = LETTER_DIR_PATH + "/" + letter;
 
+        double distSum = 0;
+        int distN = 0;
+        double distMax = 0;
+
         for (int sampleA = 1; sampleA <= NSAMPLES_PER_LETTER; ++sampleA) {
             for (int sampleB = sampleA + 1; sampleB <= NSAMPLES_PER_LETTER; ++sampleB) {
                 cv::Mat a = cv::imread(letterDir + "/" + std::to_string(sampleA) + ".png");
                 cv::Mat b = cv::imread(letterDir + "/" + std::to_string(sampleB) + ".png");
                 HoG hogA = buildHoG(a);
-                // TODO
+                HoG hogB = buildHoG(b);
+                double dist = distance(hogA, hogB);
+                distSum += dist;
+                ++distN;
+                if (dist > distMax)
+                    distMax = dist;
             }
         }
-//        std::cout << "Letter " << letter << ": max=" << distMax << ", avg=" << (distSum / distN) << std::endl;
+        std::cout << "Letter " << letter << ": max=" << distMax << ", avg=" << (distSum / distN) << std::endl;
     }
 }
 
@@ -140,13 +149,36 @@ void experiment2() {
     for (char letterA = 'a'; letterA <= 'z'; ++letterA) {
         std::string letterDirA = LETTER_DIR_PATH + "/" + letterA;
 
-        for (char letterB = 'a'; letterB <= 'z'; ++letterB) {
-            if (letterA == letterB) continue;
+        double distMax = 0, distMin = DBL_MAX;
+        char letterMax, letterMin;
 
-            // TODO
+
+
+        for (int i = 1; i <= NSAMPLES_PER_LETTER; ++i) {
+
+            cv::Mat a = cv::imread(letterDirA + "/" + std::to_string(i) + ".png");
+            HoG hogA = buildHoG(a);
+
+            for (char letterB = 'a'; letterB <= 'z'; ++letterB) {
+                if (letterA == letterB) continue;
+                std::string letterDirB = LETTER_DIR_PATH + "/" + letterB;
+                for (int j = 1; j <= NSAMPLES_PER_LETTER; ++j) {
+                    cv::Mat b = cv::imread(letterDirB + "/" + std::to_string(j) + ".png");
+                    HoG hogB = buildHoG(b);
+                    double dist = distance(hogA, hogB);
+                    if (dist > distMax) {
+                        letterMax = letterB;
+                        distMax = dist;
+                    }
+                    if (dist < distMin) {
+                        letterMin = letterB;
+                        distMin = dist;
+                    }
+                }
+            }
         }
 
-//        std::cout << "Letter " << letterA << ": max=" << letterMax << "/" << distMax << ", min=" << letterMin << "/" << distMin << std::endl;
+        std::cout << "Letter " << letterA << ": max=" << letterMax << "/" << distMax << ", min=" << letterMin << "/" << distMin << std::endl;
     }
 }
 
@@ -159,10 +191,8 @@ int main() {
 
         std::cout << "Images with letters were generated!" << std::endl;
 
-        // TODO:
         experiment1();
 
-        // TODO:
         experiment2();
 
     } catch (const std::exception &e) {

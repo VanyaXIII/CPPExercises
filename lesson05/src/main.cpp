@@ -72,6 +72,7 @@ int main() {
 //
 //        testSobel("ded1");
 //        testSobel("ded2");
+        testSobel("Zorgen_f");
 
 
         return 0;

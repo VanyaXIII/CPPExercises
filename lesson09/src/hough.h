@@ -30,10 +30,10 @@ std::vector<PolarLineExtremum> findLocalExtremums(cv::Mat houghSpace);
 
 // Эта функция по множеству всех найденных локальных экстремумов (прямых) находит самую популярную прямую
 // и возвращает только вектор из тех прямых, что не сильно ее хуже (набрали хотя бы thresholdFromWinner голосов от победителя, т.е. например половину)
-std::vector<PolarLineExtremum> filterStrongLines(std::vector<PolarLineExtremum> allLines, double thresholdFromWinner);
+std::vector<PolarLineExtremum> filterStrongLines(std::vector<PolarLineExtremum> &allLines, double thresholdFromWinner);
 
 // TODO Реализуйте эту функцию - пусть она скопирует картинку с пространством Хафа и отметит на ней красным кружком указанного радиуса (radius) места где были обнаружены экстремумы (на базе списка прямых)
-cv::Mat drawCirclesOnExtremumsInHoughSpace(cv::Mat houghSpace, std::vector<PolarLineExtremum> lines, int radius);
+cv::Mat drawCirclesOnExtremumsInHoughSpace(cv::Mat houghSpace, const std::vector<PolarLineExtremum>& lines, int radius);
 
 // TODO Реализуйте эту функцию - пусть она скопирует картинку и отметит на ней прямые в соответствии со списком прямых
-cv::Mat drawLinesOnImage(cv::Mat img, std::vector<PolarLineExtremum> lines);
+cv::Mat drawLinesOnImage(const cv::Mat& img, std::vector<PolarLineExtremum> lines);

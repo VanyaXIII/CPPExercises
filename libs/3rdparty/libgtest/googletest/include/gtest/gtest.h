@@ -2118,7 +2118,7 @@ class TestWithParam : public Test, public WithParamInterface<T> {
 //    * {ASSERT|EXPECT}_DOUBLE_EQ(val1, val2):
 //         Tests that two double values are almost equal.
 //    * {ASSERT|EXPECT}_NEAR(v1, v2, abs_error):
-//         Tests that v1 and v2 are within the given distance to each other.
+//         Tests that v1 and v2 are within the given d to each other.
 //
 // Google Test uses ULP-based comparison to automatically pick a default
 // error bound that is appropriate for the operands.  See the

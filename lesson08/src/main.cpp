@@ -57,6 +57,20 @@ void test(std::string name) {
 
     // заменим каждый пиксель с яркости X на яркость X*255.0f/max_accumulated (т.е. уменьшим диапазон значений)
     cv::imwrite("lesson08/resultsData/" + name + "_2_hough_normalized.png", hough*255.0f/max_accumulated);
+    cv::Mat blurredHough;
+    int blurX = 5;
+    int blurY = blurX * hough.rows / hough.cols;
+    if (blurY % 2 == 0) {
+        blurY = blurY + 1;
+    }
+    if (blurY < blurX) {
+        blurY = blurX;
+    }
+
+    cv::blur(hough, blurredHough, cv::Size(blurX, blurY)); // сглаживаем пространство Хафа (сглаженный результат в blurredHough)
+    hough = blurredHough; // заменяем сырое пространство Хафа на сглаженное
+// и сохраянем его визуализацию на диск:
+    cv::imwrite("lesson08/resultsData/" + name + "_3_hough_blurred.png", hough*255.0f/max_accumulated);
 
 // TODO здесь может быть полезно сгладить пространство Хафа, см. комментарии на сайте - https://www.polarnick.com/blogs/239/2021/school239_11_2021_2022/2021/11/09/lesson9-hough2-interpolation-extremum-detection.html
 
@@ -64,8 +78,8 @@ void test(std::string name) {
     std::vector<PolarLineExtremum> lines = findLocalExtremums(hough);
 
 // TODO реализуйте фильтрацию прямых - нужно оставлять только те прямые, у кого много голосов (реализуйте функцию filterStrongLines(...) ):
-//    double thresholdFromWinner = 0.5; // хотим оставить только те прямые у кого не менее половины голосов по сравнению с самой популярной прямой
-//    lines = filterStrongLines(lines, thresholdFromWinner);
+    double thresholdFromWinner = 0.5; // хотим оставить только те прямые у кого не менее половины голосов по сравнению с самой популярной прямой
+    lines = filterStrongLines(lines, thresholdFromWinner);
 
     std::cout << "Found " << lines.size() << " extremums:" << std::endl;
     for (int i = 0; i < lines.size(); ++i) {
@@ -90,7 +104,7 @@ int main() {
 
 //        test("multiline2_paper_on_table");
 
-//        test("valve");
+        test("valve");
 
         return 0;
     } catch (const std::exception &e) {
