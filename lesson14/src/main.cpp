@@ -36,6 +36,9 @@ void run() {
             "lesson14/data/1_box2/box1.png"); // пример картинки которую мы хотим найти на видеокадре
     imgToDraw = cv::imread(
             "lesson14/data/1_box2/box1_nesquik.png"); // пример картинки которую мы хотим нарисовать заместо искомой
+    double c = 1.0 * imgForDetection.cols / imgForDetection.rows;
+    cv::resize(imgForDetection.clone(), imgForDetection, cv::Size((int) (c * 300), 300), cv::INTER_LINEAR);
+    cv::resize(imgToDraw.clone(), imgToDraw, cv::Size(imgForDetection.cols, imgForDetection.rows), cv::INTER_LINEAR);
     rassert(!imgFrame.empty(), 324789374290023);
     rassert(!imgForDetection.empty(), 3789572984290019);
     rassert(!imgToDraw.empty(), 3789572984290021);
@@ -155,7 +158,11 @@ void run() {
 
             // TODO добавьте короткую справку про кнопки управления
             drawText(mainWindowImage, "Controls: ", 0.5, textYOffset);
-            drawText(mainWindowImage, "Controls: ", 0.5, textYOffset);
+            drawText(mainWindowImage, "1 - replace the search image with the current frame", 0.5, textYOffset);
+            drawText(mainWindowImage, "2 - replace the rendering image with the current frame", 0.5, textYOffset);
+            drawText(mainWindowImage, "3 - rendering debugging information", 0.5, textYOffset);
+            drawText(mainWindowImage, "H - hide the image drawn on top", 0.5, textYOffset);
+            drawText(mainWindowImage, "S - change SIFT/ORB", 0.5, textYOffset);
 
             // TODO добавьте разбивку сколько времени занимает детектирование, сколько матчинг, сколько фильтрация (по аналогии с тем как выше замерялось время на обработку для рассчета FPS):
 //            drawText(mainWindowImage, "Timings: " + std::to_string(timeForFrame) + " ms = "
@@ -177,6 +184,9 @@ void run() {
             break;
         } else if (useWebcam && key == 49) {
             imgForDetection = currentFrame.clone();
+            double c = 1.0 * imgForDetection.cols / imgForDetection.rows;
+            cv::resize(imgForDetection.clone(), imgForDetection, cv::Size((int) (c * 300), 300), cv::INTER_LINEAR);
+            cv::resize(imgToDraw.clone(), imgToDraw, cv::Size(imgForDetection.cols, imgForDetection.rows), cv::INTER_LINEAR);
         } else if (useWebcam && key == 50) {
             imgToDraw = currentFrame.clone();
         } else if (key == 104) {
