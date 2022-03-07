@@ -8,18 +8,23 @@
 #include <iostream>
 #include <filesystem>
 #include <memory>
+#include <limits.h>
 
 #include <libutils/rasserts.h>
 
-bool isPixelEmpty(cv::Vec3b color) {
+bool isPixelEmpty(const cv::Vec3b& color) {
     // TODO 1 реализуйте isPixelEmpty(color):
     // - верните true если переданный цвет - полностью черный (такие пиксели мы считаем пустыми)
     // - иначе верните false
-    rassert(false, "325235141242153: You should do TODO 1 - implement isPixelEmpty(color)!");
-    return true;
+    return color == cv::Vec3b(0, 0, 0);
 }
 
-void run(std::string caseName) {
+double distance(cv::Vec3b v1, cv::Vec3b v2)
+{
+    return sqrt(pow(v1[0] - v2[0], 2) + pow(v1[1] - v2[1], 2) + pow(v1[2] - v2[2], 2));
+}
+
+void run(const std::string& caseName) {
     cv::Mat img0 = cv::imread("lesson16/data/" + caseName + "/0.png");
     cv::Mat img1 = cv::imread("lesson16/data/" + caseName + "/1.png");
     rassert(!img0.empty(), 324789374290018);
@@ -129,15 +134,39 @@ void run(std::string caseName) {
     // TODO 1 реализуйте isPixelEmpty(color) объявленную в начале этого файла - она пригодится нам чтобы легко понять какие пиксели в панораме пустые, какие - нет
     // (т.е. эта функция позволит дальше понимать в этот пиксель наложилась исходная картинка или же там все еще тьма)
 
-    cv::Mat panoDiff(pano_rows, pano_cols, CV_8UC3, cv::Scalar(0, 0, 0));
+    cv::Mat panoDiff(pano_rows, pano_cols, CV_64FC1);
     // TODO 2 вам надо заполнить panoDiff картинку так чтобы было четко ясно где pano0 картинка (объявлена выше) и pano1 картинка отличаются сильно, а где - слабо:
     // сравните в этих двух картинках пиксели по одинаковым координатам (т.е. мы сверяем картинки) и покрасьте соответствующий пиксель panoDiff по этой логике:
     // - если оба пикселя пустые - проверяйте это через isPixelEmpty(color) (т.е. цвета черные) - результат тоже пусть черный
     // - если ровно один их пикселей пустой - результат пусть идеально белый
     // - иначе пусть результатом будет оттенок серого - пусть он тем светлее, чем больше разница между цветами пикселей
     // При этом сделайте так чтобы самый сильно отличающийся пиксель - всегда был идеально белым (255), т.е. выполните нормировку с учетом того какая максимальная разница яркости присутствует
-    // Напоминание - вот так можно выставить цвет в пикселе:
-    //  panoDiff.at<cv::Vec3b>(j, i) = cv::Vec3b(blueValue, greenValue, redValue);
+    // Напоминание - вот так можно выставить цвет в пикселеc3b>(j, i) = cv::Vec3b(blueValue, greenValue, redValue);
+    double max_d = 0;
+    for (int i = 0; i < pano_rows; ++i)
+    {
+        for (int j = 0; j < pano_cols; ++j)
+        {
+            double d = distance(pano1.at<cv::Vec3b>(i,j), pano0.at<cv::Vec3b>(i,j));
+            max_d = d > max_d ? d : max_d;
+        }
+    }
+    for (int i = 0; i < pano_rows; ++i)
+    {
+        for (int j = 0; j < pano_cols; ++j)
+        {
+            if (isPixelEmpty(pano1.at<cv::Vec3b>(i,j)) && isPixelEmpty(pano0.at<cv::Vec3b>(i,j)))
+                panoDiff.at<double>(i, j) = 0;
+            else if (isPixelEmpty(pano1.at<cv::Vec3b>(i,j)) || isPixelEmpty(pano0.at<cv::Vec3b>(i,j)))
+                panoDiff.at<double>(i, j) = 255;
+            else
+            {
+                double d = distance(pano1.at<cv::Vec3b>(i,j), pano0.at<cv::Vec3b>(i,j));
+                double k = d / max_d;
+                panoDiff.at<double>(i, j) = 255 * k;
+            }
+        }
+    }
 
     cv::imwrite(resultsDir + "5panoDiff.jpg", panoDiff);
 }
@@ -148,7 +177,7 @@ int main() {
         run("1_hanging"); // TODO 3 проанализируйте результаты по фотографиям с дрона - где различие сильное, где малое? почему так?
         run("2_hiking"); // TODO 4 проанализируйте результаты по фотографиям с дрона - где различие сильное, где малое? почему так?
         run("3_aero"); // TODO 5 проанализируйте результаты по фотографиям с дрона - где различие сильное, где малое? почему так?
-        run("4_your_data"); // TODO 6 сфотографируйте что-нибудь сами при этом на второй картинке что-то изменив, проведите анализ
+
         // TODO 7 проведите анализ результатов на базе Вопросов-Упражнений предложенных в последней статье "Урок 19: панорама и визуализация качества склейки"
 
         return 0;
